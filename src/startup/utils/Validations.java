@@ -1,4 +1,4 @@
-package java.utils;
+package startup.utils;
 
 public class Validations {
 }

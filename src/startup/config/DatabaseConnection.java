@@ -1,8 +1,6 @@
-package java.config;
+package startup.config;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class DatabaseConnection {
     //création des propriétées
@@ -72,7 +70,7 @@ public class DatabaseConnection {
      * Methode pour getConx pour Rétablir la connxion
      * @return la connexion actuel
      */
-    public Connection getConx()
+    public Connection getConnection()
     {
         try {
             if (conx == null || conx.isClosed())
@@ -103,4 +101,18 @@ public class DatabaseConnection {
             }
         }
     }
+
+    public static void testConnection() {
+        try (Connection conn = getInstance().getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT 1")) {
+            if (rs.next()) {
+                System.out.println("Test query executed successfully, result: " + rs.getInt(1));
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to execute test query: " + e.getMessage());
+        }
+    }
+
+
 }
