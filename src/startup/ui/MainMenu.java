@@ -41,7 +41,7 @@ public class MainMenu {
              switch (choice)
              {
                  case 1:
-                     //clientMenu.displayClientMenu();
+                     clientMenu.displayClientMenu();
                      break;
                  case 2:
                      //projectMenu.displayProjectMenu();
