@@ -1,4 +1,6 @@
 package startup.ui;
 
-public class ClientMenu {
+public class ClientMenu
+{
+
 }
