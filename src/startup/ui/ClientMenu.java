@@ -53,9 +53,37 @@ public class ClientMenu {
 
     //Searching by id or by Name for Client Menu
      public void displaySearchForClientMenu()
-      {
+     {
+         boolean isRunning = true;
+         while (isRunning) {
+             System.out.println("\n--- Client Search Menu ---");
+             System.out.println("1. Search by Name");
+             System.out.println("2. Search by Id");
+             System.out.println("3. Return to the Client Menu");
+             System.out.print("Enter your choice: ");
 
-    }
+             String input = scanner.nextLine();
+             int choice = ValidationUtils.validateMenusChoices(input);
+             if (choice == -1) {
+                 continue;
+             }
+
+             switch (choice) {
+                 case 1:
+                     searchClientByName();
+                     break;
+                 case 2:
+                     searchClientById();
+                     break;
+                 case 3:
+                     isRunning = false;
+                     System.out.println("Returning to Client Menu...");
+                     break;
+                 default:
+                     System.out.println("Invalid choice. Please enter 1, 2, or 3.");
+             }
+         }
+     }
 
     //Methode to Search for a Client by id
     private void searchClientById()

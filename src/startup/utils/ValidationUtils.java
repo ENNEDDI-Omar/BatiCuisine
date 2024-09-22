@@ -38,4 +38,12 @@ public class ValidationUtils
         throw new ClientNotFoundException("Phone cannot be longer than 20 characters");
     }
     }
+
+    public static Long validateId(String input) {
+        try {
+            return Long.parseLong(input);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
 }
