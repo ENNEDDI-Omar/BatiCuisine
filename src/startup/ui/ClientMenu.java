@@ -100,8 +100,12 @@ public class ClientMenu {
             Long clientId = ValidationUtils.validateId(idInput);
             Client client = clientService.findById(clientId).orElseThrow(() -> new ClientNotFoundException("Client not found with ID: " + clientId));
             System.out.println("Client found: " + client);
+            if (promptForContinuation()) {
+                createProjectForClient(client);
+            }
         } catch (IllegalArgumentException | ClientNotFoundException e) {
             System.out.println(e.getMessage());
+            handleClientNotFound();
         }
     }
 
@@ -114,11 +118,16 @@ public class ClientMenu {
             Optional<Client> clientOptional = clientService.findByName(validatedName);
             if (clientOptional.isPresent()) {
                 System.out.println("Client found: " + clientOptional.get());
+                if (promptForContinuation()) {
+                    createProjectForClient(clientOptional.get());
+                }
             } else {
                 System.out.println("No client found with the name: " + validatedName);
+                handleClientNotFound();
             }
         } catch (ClientNotFoundException e) {
             System.out.println(e.getMessage());
+            handleClientNotFound();
         }
     }
 
@@ -213,7 +222,7 @@ public class ClientMenu {
     }
 
 
-////////////
+///////////////////////////////////////////////Infos Confirmations Methodes://////////////////////////////////////////////
 
     private boolean getProfessionalStatus() {
         while (true) {
@@ -250,4 +259,26 @@ public class ClientMenu {
         return "y".equals(confirmation);
     }
 
+//////////////////////////////Asking prompt to search methodes: ///////////////////////////////
+
+    private boolean promptForContinuation() {
+        System.out.print("Do you wish to continue with this client? (y/n): ");
+        String response = scanner.nextLine().trim().toLowerCase();
+        return "y".equals(response);
+    }
+
+    private void createProjectForClient(Client client) {
+        System.out.println("Proceeding to create a project for: " + client.getName());
+
+    }
+
+    private void handleClientNotFound() {
+        System.out.println("Would you like to retry or create a new client? (retry/new): ");
+        String response = scanner.nextLine().trim().toLowerCase();
+        if ("retry".equals(response)) {
+            displayClientMenu(); // Assuming this method restarts the search or you could call a specific search method
+        } else if ("new".equals(response)) {
+            addNewClient(); // Assuming this method allows creating a new client
+        }
+    }
 }
