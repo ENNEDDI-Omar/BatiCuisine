@@ -34,6 +34,7 @@ CREATE TABLE clients (
 CREATE TABLE projects (
                           id SERIAL PRIMARY KEY,
                           project_name VARCHAR(255) UNIQUE NOT NULL,
+                          surface DOUBLE PRECISION NOT NULL CHECK ( surface > 0 ),
                           profit_margin profit_margin_type,
                           total_cost DOUBLE PRECISION NOT NULL CHECK ( total_cost >= 0 ),
                           project_status project_status_type NOT NULL ,

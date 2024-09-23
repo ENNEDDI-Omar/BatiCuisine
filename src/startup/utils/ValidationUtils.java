@@ -2,6 +2,7 @@ package startup.utils;
 
 import startup.domain.entities.Client;
 import startup.exceptions.ClientNotFoundException;
+import startup.exceptions.ProjectNotFoundException;
 
 import java.util.Optional;
 
@@ -80,5 +81,29 @@ public class ValidationUtils
             throw new ClientNotFoundException("Phone number is invalid or too long");
         }
         return phone.trim();
+    }
+
+    // Valide le nom du projet
+    public static String validateProjectName(String projectName) throws ProjectNotFoundException {
+        if (projectName == null || projectName.trim().isEmpty()) {
+            throw new ProjectNotFoundException("Project name cannot be empty.");
+        }
+        return projectName.trim();
+    }
+
+    // Valide la surface du projet
+    public static double validateSurface(double surface) throws ProjectNotFoundException {
+        if (surface <= 0) {
+            throw new ProjectNotFoundException("Surface must be greater than zero.");
+        }
+        return surface;
+    }
+
+    // Valide le coût total du projet
+    public static double validateTotalCost(double totalCost) throws ProjectNotFoundException {
+        if (totalCost < 0) {
+            throw new ProjectNotFoundException("Total cost cannot be negative.");
+        }
+        return totalCost;
     }
 }
