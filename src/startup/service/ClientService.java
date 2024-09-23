@@ -2,6 +2,7 @@ package startup.service;
 
 import startup.domain.entities.Client;
 import startup.repository.implementations.ClientRepository;
+import startup.utils.ValidationUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,28 +14,29 @@ public class ClientService {
         this.clientRepository = clientRepository;
     }
 
-    public Client save(Client Client) {
-        return this.clientRepository.save(Client);
+    public Client save(Client client) {
+        ValidationUtils.clientValidation(client);  // Valide les informations du client
+        return clientRepository.save(client);
     }
 
     public Optional<Client> findById(Long id) {
-        return this.clientRepository.findById(id);
+        return clientRepository.findById(id);
     }
 
-    public Client update(Client Client) {
-        return this.clientRepository.update(Client);
+    public Client update(Client client) {
+        ValidationUtils.clientValidation(client);  // Valide les informations du client
+        return clientRepository.update(client);
     }
 
     public boolean delete(Long id) {
-        return this.clientRepository.delete(id);
+        return clientRepository.delete(id);
     }
 
     public List<Client> findAll() {
-        return this.clientRepository.findAll();
+        return clientRepository.findAll();
     }
 
     public Optional<Client> findByName(String name) {
-        //Validations.ClientByNameValidation(name);
-        return this.clientRepository.findByName(name);
+        return clientRepository.findByName(name);
     }
 }

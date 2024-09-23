@@ -1,4 +1,6 @@
 import startup.config.DatabaseConnection;
+import startup.repository.implementations.ClientRepository;
+import startup.service.ClientService;
 import startup.ui.ClientMenu;
 import startup.ui.MainMenu;
 
@@ -11,7 +13,11 @@ public class Main {
         //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
         // to see how IntelliJ IDEA suggests fixing it.
 
-        MainMenu mainMenu = new MainMenu();
+        ClientRepository clientRepository = new ClientRepository();
+
+        ClientService clientService = new ClientService(clientRepository);
+
+        MainMenu mainMenu = new MainMenu(clientService);
         mainMenu.displayMainMenu();
     }
 }

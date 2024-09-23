@@ -1,24 +1,27 @@
 package startup.ui;
 
+import startup.service.ClientService;
 import startup.utils.ValidationUtils;
 
 import java.util.Scanner;
 
 public class MainMenu {
     private final Scanner scanner;
+    private final ClientService clientService;
 
 
 
-    public MainMenu()
+    public MainMenu(ClientService clientService)
     {
         this.scanner = new Scanner(System.in);
+        this.clientService = clientService;
     }
 
 
 
    public void displayMainMenu()
    {
-       ClientMenu clientMenu = new ClientMenu(scanner);
+       ClientMenu clientMenu = new ClientMenu(scanner, clientService);
        boolean isRunning = true;
 
      try {
