@@ -276,9 +276,9 @@ public class ClientMenu {
         System.out.println("Would you like to retry or create a new client? (retry/new): ");
         String response = scanner.nextLine().trim().toLowerCase();
         if ("retry".equals(response)) {
-            displayClientMenu(); // Assuming this method restarts the search or you could call a specific search method
+            displayClientMenu();
         } else if ("new".equals(response)) {
-            addNewClient(); // Assuming this method allows creating a new client
+            addNewClient(); 
         }
     }
 }
