@@ -83,6 +83,17 @@ public class ValidationUtils
         return phone.trim();
     }
 
+    public static boolean validateIsProfessional(String input) {
+        if ("yes".equalsIgnoreCase(input) || "y".equalsIgnoreCase(input)) {
+            return true;
+        } else if ("no".equalsIgnoreCase(input) || "n".equalsIgnoreCase(input)) {
+            return false;
+        } else {
+            throw new IllegalArgumentException("Invalid input for professional status. Enter 'yes' or 'no'.");
+        }
+    }
+
+
     // Valide le nom du projet
     public static String validateProjectName(String projectName) throws ProjectNotFoundException {
         if (projectName == null || projectName.trim().isEmpty()) {
@@ -106,4 +117,12 @@ public class ValidationUtils
         }
         return totalCost;
     }
+
+    public static double validateWorkHours(double workHours) {
+        if (workHours < 0) {
+            throw new IllegalArgumentException("Work hours cannot be negative.");
+        }
+        return workHours;
+    }
+
 }

@@ -13,5 +13,11 @@ public enum ProfitMarginType {
   public double getMargin() {
     return margin;
   }
+
+  @Override
+  public String toString()
+  {
+    return name() + "{ Profit Margin: " + margin + "}";
+  }
 }
 
