@@ -9,13 +9,15 @@ DROP TABLE IF EXISTS clients CASCADE;
 DROP TYPE IF EXISTS profit_margin_type CASCADE;
 DROP TYPE IF EXISTS project_status_type CASCADE;
 DROP TYPE IF EXISTS quote_status_type CASCADE;
+DROP TYPE IF EXISTS tax_rate_type CASCADE;
 DROP TYPE IF EXISTS quality_coefficient_type CASCADE;
 DROP TYPE IF EXISTS labor_type CASCADE;
 DROP TYPE IF EXISTS productivity_level_type CASCADE;
 
 -- Create enums types
 CREATE TYPE profit_margin_type AS ENUM ('individual', 'company');
-CREATE TYPE project_status_type AS ENUM ('in progress', 'completed', 'cancelled');
+CREATE TYPE project_status_type AS ENUM ('created', 'started', 'in progress', 'completed', 'cancelled');
+CREATE TYPE tax_rate_type AS ENUM ('material_tax_only', 'labor_tax_only', 'tax_combined');
 CREATE TYPE quality_coefficient_type AS ENUM ('standard', 'premium');
 CREATE TYPE labor_type AS ENUM ('worker', 'specialist');
 CREATE TYPE productivity_level_type AS ENUM ('normal', 'high');
@@ -34,10 +36,10 @@ CREATE TABLE clients (
 CREATE TABLE projects (
                           id SERIAL PRIMARY KEY,
                           project_name VARCHAR(255) UNIQUE NOT NULL,
-                          surface DOUBLE PRECISION NOT NULL CHECK ( surface > 0 ),
+                          surface DOUBLE PRECISION NOT NULL CHECK ( surface > 0 ), --!!!
                           profit_margin profit_margin_type,
                           total_cost DOUBLE PRECISION NOT NULL CHECK ( total_cost >= 0 ),
-                          project_status project_status_type NOT NULL ,
+                          project_status project_status_type NOT NULL default 'created',
                           client_id INTEGER NOT NULL,
                           FOREIGN KEY (client_id) REFERENCES clients(id)
 );
@@ -49,7 +51,7 @@ CREATE TABLE quotes (
                         estimated_amount DOUBLE PRECISION NOT NULL CHECK ( estimated_amount >= 0 ),
                         issue_date DATE NOT NULL,
                         expiration_date DATE,
-                        quote_status quote_status_type NOT NULL ,
+                        quote_status quote_status_type NOT NULL DEFAULT 'requested',
                         FOREIGN KEY (project_id) REFERENCES projects(id),
 
                         CHECK (expiration_date > issue_date),
@@ -62,7 +64,8 @@ CREATE TABLE components (
                             id SERIAL PRIMARY KEY,
                             project_id INTEGER NOT NULL,
                             name VARCHAR(255) UNIQUE NOT NULL,
-                            tax DOUBLE PRECISION NOT NULL CHECK ( tax >= 0 ),
+                            tax tax_rate_type,
+                            cost DOUBLE PRECISION NOT NULL CHECK ( cost >= 0 ), --!!!
                             transport_cost DOUBLE PRECISION NOT NULL CHECK ( transport_cost >= 0 ),
                             FOREIGN KEY (project_id) REFERENCES projects(id)
 );
@@ -71,14 +74,14 @@ CREATE TABLE components (
 CREATE TABLE materials (
                            unit_price DOUBLE PRECISION NOT NULL CHECK ( unit_price >= 0 ),
                            quantity DOUBLE PRECISION NOT NULL CHECK ( quantity >= 0 ),
-                           quality_coefficient quality_coefficient_type NOT NULL
+                           quality_coefficient quality_coefficient_type
 ) INHERITS (components);
 
 
 CREATE TABLE labor (
                        type labor_type,
                        work_hours DOUBLE PRECISION NOT NULL CHECK ( work_hours >= 0 ),
-                       productivity_level productivity_level_type NOT NULL
+                       productivity_level productivity_level_type
 ) INHERITS (components);
 
 

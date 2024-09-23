@@ -131,7 +131,7 @@ public class Project
 
 
     public double calculateTotalCost() {
-        double componentCosts = components.stream().mapToDouble(Component::getCost).sum();
+        double componentCosts = components.stream().mapToDouble(Component::getCost()).sum();
         this.totalCost = componentCosts;
         return this.totalCost;
     }
