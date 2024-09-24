@@ -1,5 +1,6 @@
 package startup.domain.entities;
 
+import startup.domain.enums.ComponentType;
 import startup.domain.enums.LaborType;
 import startup.domain.enums.ProductivityLevelType;
 
@@ -8,7 +9,7 @@ public class Labor extends Component {
     private double workHours;
     private ProductivityLevelType productivityLevel;
 
-    public Labor(long id, String componentType, String componentName, double transportCost, LaborType type, double workHours, ProductivityLevelType productivity, Project project) {
+    public Labor(long id, ComponentType componentType, String componentName, double transportCost, LaborType type, double workHours, ProductivityLevelType productivity, Project project) {
         super(id, componentType, componentName, transportCost, project);
         this.laborType = type;
         this.workHours = workHours;
@@ -54,15 +55,16 @@ public class Labor extends Component {
 
     @Override
     public String toString() {
-        return "Labor{" +
-                "id=" + getId() +
-                ", componentName='" + getComponentName() + '\'' +
-                ", cost=" + getCost() +
-                ", transportCost=" + getTransportCost() +
-                ", taxType=" + getTaxType() +
-                ", type=" + getLaborType() +
-                ", workHours=" + workHours +
-                ", productivityLevel=" + getProductivityLevel() +
+        return "Labor{\n" +
+                "  id=" + getId() + ",\n" +
+                "  componentName='" + getComponentName() + '\'' + ",\n" +
+                "  cost=" + getCost() + ",\n" +
+                "  transportCost=" + getTransportCost() + ",\n" +
+                "  taxType=" + getTaxType() + ",\n" +
+                "  type=" + laborType + ",\n" +
+                "  workHours=" + workHours + ",\n" +
+                "  productivityLevel=" + productivityLevel + "\n" +
                 '}';
     }
+
 }

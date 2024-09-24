@@ -1,7 +1,9 @@
 package startup.domain.entities;
 
+import startup.domain.enums.ComponentType;
 import startup.domain.enums.ProfitMarginType;
 import startup.domain.enums.ProjectStatusType;
+import startup.domain.enums.RateTaxType;
 import startup.utils.ValidationUtils;
 
 import java.awt.*;
@@ -18,25 +20,23 @@ public class Project
     private ProjectStatusType projectStatus;
     private double surface;
     private Client client;
-    private List<Material> materials;
-    private List<Labor> labors;
+    private final List<Component> components;
+
 
     public Project() {
-
+      this.components = new ArrayList<>();
     }
 
     public Project(Long id, String projectName, double surface, Client client) {
+        this();
         this.id = id;
         this.projectName = ValidationUtils.validateProjectName(projectName);
         this.surface = ValidationUtils.validateSurface(surface);
         this.client = client;
         this.projectStatus = ProjectStatusType.CREATED;
-        this.materials = new ArrayList<>();
-        this.labors = new ArrayList<>();
         initializeProfitMargin();
         this.totalCost = calculateTotalCost();
     }
-
 
 
     public Client getClient() {
@@ -88,26 +88,6 @@ public class Project
         this.projectStatus = status;
     }
 
-    public List<Material> getMaterials() { return materials; }
-
-    public void setMaterials(List<Material> materials) {
-        this.materials = materials;
-    }
-
-    public List<Labor> getLabors() {
-        return labors;
-    }
-
-    public void setLabors(List<Labor> labors) {
-        this.labors = labors;
-    }
-
-    public void addMaterial(Material material) {
-        this.materials.add(material);
-    }
-
-    public void addLabors(Labor labor) { this.labors.add(labor);}
-
     public double getSurface() {return surface;}
 
     public void setSurface(double surface) {
@@ -119,53 +99,63 @@ public class Project
             throw new IllegalArgumentException("Cannot add a null component.");
         }
         components.add(component);
-        updateTotalCost();
+        calculateTotalCost();
     }
 
     public void removeComponent(Component component) {
         components.remove(component);
-        updateTotalCost();
+        //updateTotalCost();
     }
 
     @Override
     public String toString() {
-        return "Project{" +
-                "id=" + id +
-                ", projectName='" + projectName + '\'' +
-                ", profitMargin=" + profitMargin +
-                ", totalCost=" + totalCost +
-                ", projectStatus=" + projectStatus +
-                ", surface=" + surface +
-                ", client=" + client +
+        return "Project{\n" +
+                "  id=" + id + ",\n" +
+                "  projectName='" + projectName + '\'' + ",\n" +
+                "  profitMargin=" + profitMargin + ",\n" +
+                "  totalCost=" + totalCost + ",\n" +
+                "  projectStatus=" + projectStatus + ",\n" +
+                "  surface=" + surface + ",\n" +
+                "  client=" + client + ",\n" +
+                "  components=" + components + "\n" +
                 '}';
     }
 
 
+
     public double calculateTotalCost() {
-        double componentCosts = components.stream().mapToDouble(Component::getCost).sum();
-        this.totalCost = componentCosts;
-        return this.totalCost;
-    }
+        double materialCost = components.stream()
+                .filter(c -> c.getComponentType() == ComponentType.MATERIAL)
+                .mapToDouble(Component::calculateCost)
+                .sum();
 
+        double laborCost = components.stream()
+                .filter(c -> c.getComponentType() == ComponentType.LABOR)
+                .mapToDouble(Component::calculateCost)
+                .sum();
 
-    public void updateTotalCost() {
-        double materialCost = materials.stream().mapToDouble(Material::calculateCost).sum();
-        double laborCost = labors.stream().mapToDouble(Labor::calculateCost).sum();
+        // Calculer la remise en fonction de la surface
+        double discountMultiplier = 1 - (Math.floor(this.surface / 500) * 0.05); // Réduction de 5% pour chaque tranche de 500 m²
 
-        if (!materials.isEmpty() && !labors.isEmpty()) {
-            totalCost = (materialCost + laborCost) * (1 + TaxRateType.TAX_COMBINED.getRate());
-        } else {
-            totalCost = materialCost + laborCost; // Taxation individuelle déjà appliquée dans chaque calcul
+        if (discountMultiplier < 0) {
+            discountMultiplier = 0;
         }
+
+        if (components.stream().anyMatch(c -> c.getComponentType() == ComponentType.MATERIAL) &&
+                components.stream().anyMatch(c -> c.getComponentType() == ComponentType.LABOR)) {
+            totalCost = (materialCost + laborCost) * discountMultiplier * (1 + RateTaxType.TAX_COMBINED.getRate());
+        } else if (components.stream().anyMatch(c -> c.getComponentType() == ComponentType.MATERIAL)) {
+            totalCost = materialCost * discountMultiplier * (1 + RateTaxType.MATERIAL_TAX_ONLY.getRate());
+        } else if (components.stream().anyMatch(c -> c.getComponentType() == ComponentType.LABOR)) {
+            totalCost = laborCost * discountMultiplier * (1 + RateTaxType.LABOR_TAX_ONLY.getRate());
+        }
+        return totalCost;
     }
 
 
     private void initializeProfitMargin() {
-        if (this.client != null) {
-            this.profitMargin = client.isProfessional() ? ProfitMarginType.COMPANY : ProfitMarginType.INDIVIDUAL;
-        } else {
-            this.profitMargin = ProfitMarginType.INDIVIDUAL;
-        }
+        this.profitMargin = (client != null && client.isProfessional()) ?
+                ProfitMarginType.COMPANY : ProfitMarginType.INDIVIDUAL;
     }
 
 

@@ -2,7 +2,7 @@ package startup.domain.enums;
 
 public enum RateTaxType
 {
-    MATERIAL_TAX_ONLY(0.05),
+    MATERIAL_TAX_ONLY(0.07),
     LABOR_TAX_ONLY(0.09),
     TAX_COMBINED(0.14);
 

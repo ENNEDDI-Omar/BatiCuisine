@@ -15,11 +15,14 @@ public abstract class Component
     private double transportCost;
     private RateTaxType taxType;
     private Project project;
+    private List<Material> materials;
+    private List<Labor> labors;
 
 
-    public Component(long id, String type, String componentName, double transportCost, Project project) {
+    public Component(long id, ComponentType type, String componentName, double transportCost, Project project) {
+        this();
         this.id = id;
-        this.componentType = ComponentType.valueOf(type);
+        this.componentType = type;
         this.componentName = componentName;
         this.transportCost = transportCost;
         this.project = project;
@@ -27,8 +30,12 @@ public abstract class Component
 
     }
 
-    public Component()
-    {}
+    public Component() {
+        this.materials = new ArrayList<>();
+        this.labors = new ArrayList<>();
+    }
+
+    public abstract double calculateCost();
 
     // Getters and setters for each field
     public long getId() {
@@ -39,10 +46,9 @@ public abstract class Component
         this.id = id;
     }
 
-    public String getComponentType() {
-        return componentType.toString();
+    public ComponentType getComponentType() {
+        return componentType;
     }
-
 
     public String getComponentName() {
         return componentName;
@@ -57,6 +63,9 @@ public abstract class Component
     }
 
     public void setCost(double cost) {
+        if (cost < 0) {
+            throw new IllegalArgumentException("Cost cannot be negative.");
+        }
         this.cost = cost;
     }
 
@@ -65,6 +74,9 @@ public abstract class Component
     }
 
     public void setTransportCost(double transportCost) {
+        if (transportCost < 0) {
+            throw new IllegalArgumentException("Transport cost cannot be negative.");
+        }
         this.transportCost = transportCost;
     }
 
@@ -80,18 +92,42 @@ public abstract class Component
 
     public void setProject(Project project) { this.project = project; }
 
+    public List<Material> getMaterials() { return materials; }
 
+    public void setMaterials(List<Material> materials) {
+        this.materials = materials;
+    }
+
+    public List<Labor> getLabors() {
+        return labors;
+    }
+
+    public void setLabors(List<Labor> labors) {
+        this.labors = labors;
+    }
+
+    public void addMaterial(Material material) {
+        this.materials.add(material);
+        calculateCost();
+    }
+
+    public void addLabors(Labor labor) { this.labors.add(labor);
+    calculateCost();}
 
     @Override
     public String toString() {
-        return "Component{" +
-                "id=" + id +
-                ", componentName='" + componentName + '\'' +
-                ", cost=" + cost +
-                ", transportCost=" + transportCost +
-                ", taxType=" + taxType +
+        return "Component{\n" +
+                "  id=" + id + ",\n" +
+                "  componentName='" + componentName + '\'' + ",\n" +
+                "  cost=" + cost + ",\n" +
+                "  transportCost=" + transportCost + ",\n" +
+                "  taxType=" + taxType + ",\n" +
+                "  project=" + project + "\n" +
                 '}';
     }
 
-    public abstract double calculateCost();
+
+
+
+
 }

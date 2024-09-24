@@ -1,6 +1,6 @@
 package startup.domain.entities;
 
-import startup.domain.enums.RateTaxType;
+import startup.domain.enums.ComponentType;
 import startup.domain.enums.QualityCoefficientType;
 
 public class Material extends Component {
@@ -8,7 +8,7 @@ public class Material extends Component {
     private double quantity;
     private QualityCoefficientType qualityCoefficient;
 
-    public Material(long id, String type, String componentName, double transportCost, double unitPrice, double quantity, QualityCoefficientType quality, Project project) {
+    public Material(long id, ComponentType type, String componentName, double transportCost, double unitPrice, double quantity, QualityCoefficientType quality, Project project) {
         super(id, type, componentName, transportCost, project);
         this.unitPrice = unitPrice;
         this.quantity = quantity;
@@ -54,15 +54,16 @@ public class Material extends Component {
 
     @Override
     public String toString() {
-        return "Material{" +
-                "id=" + getId() +
-                ", componentName='" + getComponentName() + '\'' +
-                ", cost=" + getCost() +
-                ", transportCost=" + getTransportCost() +
-                ", taxType=" + getTaxType() +
-                ", unitPrice=" + unitPrice +
-                ", quantity=" + quantity +
-                ", qualityCoefficient=" + qualityCoefficient +
+        return "Material{\n" +
+                "  id=" + getId() + ",\n" +
+                "  componentName='" + getComponentName() + '\'' + ",\n" +
+                "  cost=" + getCost() + ",\n" +
+                "  transportCost=" + getTransportCost() + ",\n" +
+                "  taxType=" + getTaxType() + ",\n" +
+                "  unitPrice=" + unitPrice + ",\n" +
+                "  quantity=" + quantity + ",\n" +
+                "  qualityCoefficient=" + qualityCoefficient + "\n" +
                 '}';
     }
+
 }
