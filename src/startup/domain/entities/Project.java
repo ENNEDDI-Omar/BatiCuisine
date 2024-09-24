@@ -135,7 +135,7 @@ public class Project
                 .sum();
 
         // Calculer la remise en fonction de la surface
-        double discountMultiplier = 1 - (Math.floor(this.surface / 500) * 0.05); // Réduction de 5% pour chaque tranche de 500 m²
+        double discountMultiplier = 1 - (Math.floor(this.surface / 500) * 0.05);
 
         if (discountMultiplier < 0) {
             discountMultiplier = 0;

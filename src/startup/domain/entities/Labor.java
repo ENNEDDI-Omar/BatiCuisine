@@ -9,7 +9,7 @@ public class Labor extends Component {
     private double workHours;
     private ProductivityLevelType productivityLevel;
 
-    public Labor(long id, ComponentType componentType, String componentName, double transportCost, LaborType type, double workHours, ProductivityLevelType productivity, Project project) {
+    public Labor(Long id, ComponentType componentType, String componentName, double transportCost, LaborType type, double workHours, ProductivityLevelType productivity, Project project) {
         super(id, componentType, componentName, transportCost, project);
         this.laborType = type;
         this.workHours = workHours;

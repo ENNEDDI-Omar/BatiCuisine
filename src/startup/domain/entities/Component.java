@@ -8,7 +8,7 @@ import java.util.List;
 
 public abstract class Component
 {
-    private long id;
+    private Long id;
     private ComponentType componentType;
     private String componentName;
     private double cost;
@@ -19,7 +19,7 @@ public abstract class Component
     private List<Labor> labors;
 
 
-    public Component(long id, ComponentType type, String componentName, double transportCost, Project project) {
+    public Component(Long id, ComponentType type, String componentName, double transportCost, Project project) {
         this();
         this.id = id;
         this.componentType = type;
@@ -38,7 +38,7 @@ public abstract class Component
     public abstract double calculateCost();
 
     // Getters and setters for each field
-    public long getId() {
+    public Long getId() {
         return id;
     }
 

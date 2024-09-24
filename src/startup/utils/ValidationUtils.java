@@ -1,6 +1,7 @@
 package startup.utils;
 
 import startup.domain.entities.Client;
+import startup.domain.enums.QualityCoefficientType;
 import startup.exceptions.ClientNotFoundException;
 import startup.exceptions.ProjectNotFoundException;
 
@@ -90,6 +91,28 @@ public class ValidationUtils
             return false;
         } else {
             throw new IllegalArgumentException("Invalid input for professional status. Enter 'yes' or 'no'.");
+        }
+    }
+
+    public static double validateUnitPrice(double unitPrice) {
+        if (unitPrice < 0) {
+            throw new IllegalArgumentException("Unit price cannot be negative.");
+        }
+        return unitPrice;
+    }
+
+    public static double validateQuantity(double quantity) {
+        if (quantity < 0) {
+            throw new IllegalArgumentException("Quantity cannot be negative.");
+        }
+        return quantity;
+    }
+
+    public static QualityCoefficientType validateQualityCoefficient(String qualityCoefficient) {
+        try {
+            return QualityCoefficientType.valueOf(qualityCoefficient.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid quality coefficient provided.");
         }
     }
 

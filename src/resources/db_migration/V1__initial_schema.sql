@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS clients CASCADE;
 
 DROP TYPE IF EXISTS profit_margin_type CASCADE;
 DROP TYPE IF EXISTS project_status_type CASCADE;
+DROP TYPE IF EXISTS component_type CASCADE;
 DROP TYPE IF EXISTS quote_status_type CASCADE;
 DROP TYPE IF EXISTS tax_rate_type CASCADE;
 DROP TYPE IF EXISTS quality_coefficient_type CASCADE;
@@ -17,6 +18,7 @@ DROP TYPE IF EXISTS productivity_level_type CASCADE;
 -- Create enums types
 CREATE TYPE profit_margin_type AS ENUM ('individual', 'company');
 CREATE TYPE project_status_type AS ENUM ('created', 'started', 'in progress', 'completed', 'cancelled');
+CREATE TYPE component_type AS ENUM ('material', 'labor');
 CREATE TYPE tax_rate_type AS ENUM ('material_tax_only', 'labor_tax_only', 'tax_combined');
 CREATE TYPE quality_coefficient_type AS ENUM ('standard', 'premium');
 CREATE TYPE labor_type AS ENUM ('worker', 'specialist');
@@ -63,6 +65,7 @@ CREATE TABLE quotes (
 CREATE TABLE components (
                             id SERIAL PRIMARY KEY,
                             project_id INTEGER NOT NULL,
+                            component_type component_type,
                             name VARCHAR(255) UNIQUE NOT NULL,
                             tax tax_rate_type,
                             cost DOUBLE PRECISION NOT NULL CHECK ( cost >= 0 ), --!!!
