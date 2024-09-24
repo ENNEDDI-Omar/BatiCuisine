@@ -18,7 +18,8 @@ public class Project
     private ProjectStatusType projectStatus;
     private double surface;
     private Client client;
-    List<Component> components;
+    private List<Material> materials;
+    private List<Labor> labors;
 
     public Project() {
 
@@ -29,8 +30,9 @@ public class Project
         this.projectName = ValidationUtils.validateProjectName(projectName);
         this.surface = ValidationUtils.validateSurface(surface);
         this.client = client;
-        this.components = new ArrayList<>();
         this.projectStatus = ProjectStatusType.CREATED;
+        this.materials = new ArrayList<>();
+        this.labors = new ArrayList<>();
         initializeProfitMargin();
         this.totalCost = calculateTotalCost();
     }
@@ -86,18 +88,27 @@ public class Project
         this.projectStatus = status;
     }
 
-    public List<Component> getComponents() {
-        return components;
+    public List<Material> getMaterials() { return materials; }
+
+    public void setMaterials(List<Material> materials) {
+        this.materials = materials;
     }
 
-    public void setComponents(List<Component> components) {
-        this.components = components;
+    public List<Labor> getLabors() {
+        return labors;
     }
 
-    public double getSurface() {
-
-        return surface;
+    public void setLabors(List<Labor> labors) {
+        this.labors = labors;
     }
+
+    public void addMaterial(Material material) {
+        this.materials.add(material);
+    }
+
+    public void addLabors(Labor labor) { this.labors.add(labor);}
+
+    public double getSurface() {return surface;}
 
     public void setSurface(double surface) {
         this.surface = ValidationUtils.validateSurface(surface);
@@ -137,9 +148,17 @@ public class Project
     }
 
 
-    private void updateTotalCost() {
-        this.totalCost = calculateTotalCost();
+    public void updateTotalCost() {
+        double materialCost = materials.stream().mapToDouble(Material::calculateCost).sum();
+        double laborCost = labors.stream().mapToDouble(Labor::calculateCost).sum();
+
+        if (!materials.isEmpty() && !labors.isEmpty()) {
+            totalCost = (materialCost + laborCost) * (1 + TaxRateType.TAX_COMBINED.getRate());
+        } else {
+            totalCost = materialCost + laborCost; // Taxation individuelle déjà appliquée dans chaque calcul
+        }
     }
+
 
     private void initializeProfitMargin() {
         if (this.client != null) {

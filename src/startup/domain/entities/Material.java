@@ -8,12 +8,20 @@ public class Material extends Component {
     private double quantity;
     private QualityCoefficientType qualityCoefficient;
 
-    public Material(long id, String componentName, double cost, double transportCost, RateTaxType taxType,
-                    double unitPrice, double quantity, QualityCoefficientType qualityCoefficient) {
-        super(id, componentName, cost, transportCost, taxType);
+    public Material(long id, String type, String componentName, double transportCost, double unitPrice, double quantity, QualityCoefficientType quality, Project project) {
+        super(id, type, componentName, transportCost, project);
         this.unitPrice = unitPrice;
         this.quantity = quantity;
-        this.qualityCoefficient = qualityCoefficient;
+        this.qualityCoefficient = quality;
+        setCost(calculateCost());
+    }
+
+    public Material() {
+        super();
+    }
+
+    public double calculateCost() {
+        return (unitPrice * quantity * qualityCoefficient.getQuality()) + getTransportCost();
     }
 
     // Getters and setters
@@ -23,6 +31,7 @@ public class Material extends Component {
 
     public void setUnitPrice(double unitPrice) {
         this.unitPrice = unitPrice;
+        super.setCost(calculateCost());
     }
 
     public double getQuantity() {
@@ -31,6 +40,7 @@ public class Material extends Component {
 
     public void setQuantity(double quantity) {
         this.quantity = quantity;
+        super.setCost(calculateCost());
     }
 
     public QualityCoefficientType getQualityCoefficient() {
@@ -39,6 +49,7 @@ public class Material extends Component {
 
     public void setQualityCoefficient(QualityCoefficientType qualityCoefficient) {
         this.qualityCoefficient = qualityCoefficient;
+        super.setCost(calculateCost());
     }
 
     @Override

@@ -41,7 +41,7 @@ CREATE TABLE projects (
                           total_cost DOUBLE PRECISION NOT NULL CHECK ( total_cost >= 0 ),
                           project_status project_status_type NOT NULL default 'created',
                           client_id INTEGER NOT NULL,
-                          FOREIGN KEY (client_id) REFERENCES clients(id)
+                          FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
 );
 
 -- Create the Quotes table
@@ -52,7 +52,7 @@ CREATE TABLE quotes (
                         issue_date DATE NOT NULL,
                         expiration_date DATE,
                         quote_status quote_status_type NOT NULL DEFAULT 'requested',
-                        FOREIGN KEY (project_id) REFERENCES projects(id),
+                        FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE ,
 
                         CHECK (expiration_date > issue_date),
     --CHECK (issue_date >= current_date),
@@ -67,7 +67,7 @@ CREATE TABLE components (
                             tax tax_rate_type,
                             cost DOUBLE PRECISION NOT NULL CHECK ( cost >= 0 ), --!!!
                             transport_cost DOUBLE PRECISION NOT NULL CHECK ( transport_cost >= 0 ),
-                            FOREIGN KEY (project_id) REFERENCES projects(id)
+                            FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 );
 
 

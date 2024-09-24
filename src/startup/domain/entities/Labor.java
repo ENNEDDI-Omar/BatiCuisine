@@ -8,24 +8,30 @@ public class Labor extends Component {
     private double workHours;
     private ProductivityLevelType productivityLevel;
 
-    public Labor(long id, String componentName, double transportCost, LaborType type, double workHours, ProductivityLevelType productivityLevel) {
-        super(id, componentName, transportCost);
+    public Labor(long id, String componentType, String componentName, double transportCost, LaborType type, double workHours, ProductivityLevelType productivity, Project project) {
+        super(id, componentType, componentName, transportCost, project);
         this.laborType = type;
         this.workHours = workHours;
-        this.productivityLevel = productivityLevel;
+        this.productivityLevel = productivity;
+        setCost(calculateCost());
     }
 
     public Labor() {
         super();
     }
 
-    // Getters and setters
+    public double calculateCost() {
+        return (laborType.getPayementRate() * workHours * productivityLevel.getCoefficient()) + getTransportCost();
+    }
+
+
     public LaborType getLaborType() {
         return laborType;
     }
 
     public void setType(LaborType type) {
         this.laborType = type;
+        super.setCost(calculateCost());
     }
 
     public double getWorkHours() {
@@ -34,6 +40,7 @@ public class Labor extends Component {
 
     public void setWorkHours(double workHours) {
         this.workHours = workHours;
+        super.setCost(calculateCost());
     }
 
     public ProductivityLevelType getProductivityLevel() {
@@ -42,6 +49,7 @@ public class Labor extends Component {
 
     public void setProductivityLevel(ProductivityLevelType productivityLevel) {
         this.productivityLevel = productivityLevel;
+        super.setCost(calculateCost());
     }
 
     @Override
@@ -52,9 +60,9 @@ public class Labor extends Component {
                 ", cost=" + getCost() +
                 ", transportCost=" + getTransportCost() +
                 ", taxType=" + getTaxType() +
-                ", type=" + laborType +
+                ", type=" + getLaborType() +
                 ", workHours=" + workHours +
-                ", productivityLevel=" + productivityLevel +
+                ", productivityLevel=" + getProductivityLevel() +
                 '}';
     }
 }

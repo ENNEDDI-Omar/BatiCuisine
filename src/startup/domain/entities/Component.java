@@ -1,26 +1,29 @@
 package startup.domain.entities;
 
+import startup.domain.enums.ComponentType;
 import startup.domain.enums.RateTaxType;
 
 import java.util.ArrayList;
 import java.util.List;
 
-abstract class Component
+public abstract class Component
 {
     private long id;
+    private ComponentType componentType;
     private String componentName;
     private double cost;
     private double transportCost;
     private RateTaxType taxType;
     private Project project;
-    private List<Material> materials = new ArrayList<>();
-    private List<Labor> labors = new ArrayList<>();
 
 
-    public Component(long id, String componentName, double transportCost) {
+    public Component(long id, String type, String componentName, double transportCost, Project project) {
         this.id = id;
+        this.componentType = ComponentType.valueOf(type);
         this.componentName = componentName;
         this.transportCost = transportCost;
+        this.project = project;
+        this.cost = calculateCost();
 
     }
 
@@ -35,6 +38,11 @@ abstract class Component
     public void setId(long id) {
         this.id = id;
     }
+
+    public String getComponentType() {
+        return componentType.toString();
+    }
+
 
     public String getComponentName() {
         return componentName;
@@ -72,27 +80,7 @@ abstract class Component
 
     public void setProject(Project project) { this.project = project; }
 
-    public List<Material> getMaterials() { return materials; }
 
-    public void setMaterials(List<Material> materials) {
-        this.materials = materials;
-    }
-
-    public List<Labor> getLabors() {
-        return labors;
-    }
-
-    public void setLabors(List<Labor> labors) {
-        this.labors = labors;
-    }
-
-    public void addMaterial(Material material) {
-        this.materials.add(material);
-    }
-
-    public void addLabors(Labor labor) {
-        this.labors.add(labor);
-    }
 
     @Override
     public String toString() {
@@ -104,4 +92,6 @@ abstract class Component
                 ", taxType=" + taxType +
                 '}';
     }
+
+    public abstract double calculateCost();
 }

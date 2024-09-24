@@ -16,4 +16,10 @@ public enum RateTaxType
     public double getRate() {
             return rate;
     }
+
+    @Override
+    public String toString()
+    {
+        return name() + "{ Tax Rate : " + getRate() + "}";
+    }
 }
