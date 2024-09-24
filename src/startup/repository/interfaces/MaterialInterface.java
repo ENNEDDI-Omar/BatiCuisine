@@ -1,4 +1,8 @@
 package startup.repository.interfaces;
 
-public interface MaterialInterface {
+import startup.domain.entities.Material;
+
+public interface MaterialInterface extends CrudInterface<Material>
+{
+
 }

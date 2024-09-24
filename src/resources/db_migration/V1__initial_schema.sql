@@ -96,12 +96,14 @@ INSERT INTO clients (client_name, address, phone, is_professional) VALUES
                                                                        ('Clark Kent', '321 Daily Planet Ave', '0123456791', false);
 
 -- Insert multiple Projects
-INSERT INTO projects (project_name, profit_margin, total_cost, project_status, client_id) VALUES
-                                                                                              ('Small Bathroom Project', 'company', 15000, 'in progress', 2),
-                                                                                              ('Large Kitchen Project', 'individual', 75000, 'completed', 3),
-                                                                                              ('Outdoor BBQ Area', 'individual', 30000, 'cancelled', 1),
-                                                                                              ('Office Renovation', 'company', 45000, 'in progress', 5),
-                                                                                              ('Small Condo Remodel', 'individual', 18000, 'completed', 3);
+INSERT INTO projects (project_name, profit_margin, total_cost, project_status, client_id, surface) VALUES
+                                                                                                       ('Small Bathroom Project', 'company', 15000, 'in progress', 2, 25),
+                                                                                                       ('Large Kitchen Project', 'individual', 75000, 'completed', 3, 45),
+                                                                                                       ('Outdoor BBQ Area', 'individual', 30000, 'cancelled', 1, 50),
+                                                                                                       ('Office Renovation', 'company', 45000, 'in progress', 5, 75),
+                                                                                                       ('Small Condo Remodel', 'individual', 18000, 'completed', 3, 30);
+
+
 
 -- Insert multiple Quotes
 INSERT INTO quotes (project_id, estimated_amount, issue_date, expiration_date, quote_status) VALUES
@@ -112,16 +114,19 @@ INSERT INTO quotes (project_id, estimated_amount, issue_date, expiration_date, q
 
 
 -- Insert multiple Materials
-INSERT INTO materials (project_id, name, unit_price, quantity, quality_coefficient, tax, transport_cost) VALUES
-                                                                                                             (2, 'Tile Flooring', 50, 100, 'standard', 5, 25),
-                                                                                                             (3, 'Marble Countertop', 300, 3, 'premium', 30, 18),
-                                                                                                             (4, 'Outdoor Bricks', 20, 50, 'standard', 10, 22);
+INSERT INTO materials (project_id, name, unit_price, quantity, quality_coefficient, tax, transport_cost, cost) VALUES
+                                                                                                                   (2, 'Tile Flooring', 50, 100, 'standard', 'material_tax_only', 25, (50 * 100 + 25)),
+                                                                                                                   (3, 'Marble Countertop', 300, 3, 'premium', 'material_tax_only', 18, (300 * 3 + 18)),
+                                                                                                                   (4, 'Outdoor Bricks', 20, 50, 'standard', 'material_tax_only', 22, (20 * 50 + 22));
+
+
 
 -- Insert multiple Labors
-INSERT INTO labor (project_id, name, type, work_hours, productivity_level, tax, transport_cost) VALUES
-                                                                                                    (2, 'Tiling Team', 'worker', 40, 'normal', 0, 11),
-                                                                                                    (3, 'Marble Installation Team', 'specialist', 50, 'high', 0, 15),
-                                                                                                    (4, 'Bricklaying Team', 'worker', 60, 'normal', 0, 8);
+INSERT INTO labor (project_id, name, type, work_hours, productivity_level, tax, transport_cost, cost) VALUES
+                                                                                                          (2, 'Tiling Team', 'worker', 40, 'normal', 'labor_tax_only', 11, (40 * 20 + 11)),
+                                                                                                          (3, 'Marble Installation Team', 'specialist', 50, 'high', 'labor_tax_only', 15, (50 * 30 + 15)),
+                                                                                                          (4, 'Bricklaying Team', 'worker', 60, 'normal', 'labor_tax_only', 8, (60 * 20 + 8));
+
 
 
 
@@ -132,32 +137,35 @@ SELECT p.project_name, p.total_cost, p.project_status, client_name, c.is_profess
 FROM projects p
          JOIN clients c ON p.client_id = c.id;
 
---Calculer le coût total estimé pour un projet en incluant les matériaux et la main-d'œuvre :
+-- Calcul du coût total en incluant matériaux et main-d'œuvre avec le profit margin correctement appliqué.
 SELECT p.project_name,
        SUM(m.unit_price * m.quantity) AS total_material_cost,
-       SUM(l.work_hours * CASE l.productivity_level WHEN 'high' THEN 100 ELSE 70 END) AS total_labor_cost,
-       (SUM(m.unit_price * m.quantity) + SUM(l.work_hours * CASE l.productivity_level WHEN 'high' THEN 100 ELSE 70 END)) * (1 + CASE p.profit_margin WHEN 'company' THEN 0.32 ELSE 0.22 END) AS total_project_cost
+       SUM(l.work_hours * CASE WHEN l.productivity_level = 'high' THEN 100 ELSE 70 END) AS total_labor_cost,
+       (SUM(m.unit_price * m.quantity) + SUM(l.work_hours * CASE WHEN l.productivity_level = 'high' THEN 100 ELSE 70 END)) * (1 + CASE WHEN p.profit_margin = 'company' THEN 0.32 ELSE 0.22 END) AS total_project_cost
 FROM projects p
          JOIN components c ON p.id = c.project_id
          LEFT JOIN materials m ON c.id = m.id
          LEFT JOIN labor l ON c.id = l.id
 GROUP BY p.project_name, p.profit_margin;
 
---Trouver tous les devis qui n'ont pas été acceptés et dont la date d'expiration est dépassée :
+
+-- Assurez-vous que les dates soient traitées correctement selon votre logique métier.
 SELECT q.*, p.project_name
 FROM quotes q
          JOIN projects p ON q.project_id = p.id
 WHERE q.quote_status NOT IN ('accepted') AND q.expiration_date < CURRENT_DATE;
 
---Détail des matériaux et de la main-d'œuvre utilisés pour un projet spécifique :
+
+-- Détails de l'utilisation des matériaux et de la main-d'œuvre pour un projet spécifique.
 SELECT p.project_name, c.name AS component_name, c.tax, c.transport_cost,
-       CASE WHEN m.id IS NOT NULL THEN 'Material' WHEN l.id IS NOT NULL THEN 'Labor' END AS component_type,
-       COALESCE(m.unit_price * m.quantity, l.work_hours * CASE l.productivity_level WHEN 'high' THEN 100 ELSE 70 END) AS cost
+       CASE WHEN m.id IS NOT NULL THEN 'Material' ELSE 'Labor' END AS component_type,
+       COALESCE(m.unit_price * m.quantity, l.work_hours * CASE WHEN l.productivity_level = 'high' THEN 100 ELSE 70 END) AS cost
 FROM projects p
          LEFT JOIN components c ON p.id = c.project_id
          LEFT JOIN materials m ON c.id = m.id
          LEFT JOIN labor l ON c.id = l.id
 WHERE p.project_name = 'Office Renovation';
+
 
 
 

@@ -1,4 +1,8 @@
 package startup.repository.interfaces;
 
-public interface LaborInterface {
+import startup.domain.entities.Labor;
+
+public interface LaborInterface extends CrudInterface<Labor>
+{
+
 }
