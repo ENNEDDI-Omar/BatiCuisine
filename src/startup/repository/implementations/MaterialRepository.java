@@ -125,7 +125,7 @@ public class MaterialRepository implements CrudInterface<Material> {
 
 
         // Autres champs du projet...
-        ProjectRepository projectRepository = new ProjectRepository();
+        ProjectRepository projectRepository = new ProjectRepository(new ClientRepository());
         Project project = projectRepository.findById(projectId).orElse(null);
 
         // Assumption: project must be fetched or set elsewhere if needed

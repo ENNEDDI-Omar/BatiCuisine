@@ -1,34 +1,130 @@
 package startup.repository.implementations;
 
+import startup.config.DatabaseConnection;
+import startup.domain.entities.Client;
 import startup.domain.entities.Project;
-import startup.repository.interfaces.ProjectInterface;
+import startup.domain.enums.ProfitMarginType;
+import startup.domain.enums.ProjectStatusType;
+import startup.repository.interfaces.CrudInterface;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class ProjectRepository implements ProjectInterface {
+public class ProjectRepository implements CrudInterface<Project> {
+    private Connection connection;
+    private ClientRepository clientRepository;
+
+    public ProjectRepository(ClientRepository clientRepository) {
+        this.connection = DatabaseConnection.getInstance().getConnection();
+        this.clientRepository = clientRepository;
+    }
+
     @Override
-    public Project save(Project entity) {
-        return null;
+    public Project save(Project project) {
+        String query = "INSERT INTO projects (project_name, surface, profit_margin, total_cost, project_status, client_id) VALUES (?, ?, ?::profit_margin_type, ?, ?::project_status_type, ?) RETURNING id";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setString(1, project.getProjectName());
+            preparedStatement.setDouble(2, project.getSurface());
+            preparedStatement.setString(3, project.getProfitMargin().name());
+            preparedStatement.setDouble(4, project.getTotalCost());
+            preparedStatement.setString(5, project.getStatus().name());
+            preparedStatement.setLong(6, project.getClient().getId());
+
+            try (ResultSet generatedKeys = preparedStatement.executeQuery()) {
+                if (generatedKeys.next()) {
+                    project.setId(generatedKeys.getLong(1));
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error saving project: " + e.getMessage());
+        }
+        return project;
     }
 
     @Override
     public Optional<Project> findById(Long id) {
+        String query = "SELECT * FROM projects WHERE id = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setLong(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return Optional.of(mapToProject(resultSet));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error finding project by id: " + e.getMessage());
+        }
         return Optional.empty();
     }
 
     @Override
-    public List<Project> findAll() {
-        return List.of();
+    public List<Project> findAll()
+    {
+        List<Project> projects = new ArrayList<>();
+        String query = "SELECT * FROM projects";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query);
+             ResultSet resultSet = preparedStatement.executeQuery()) {
+            while (resultSet.next()) {
+                projects.add(mapToProject(resultSet));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error finding all projects: " + e.getMessage());
+        }
+        return projects;
     }
 
     @Override
-    public Project update(Project entity) {
-        return null;
+    public Project update(Project project)
+    {
+        String sql = "UPDATE projects SET project_name = ?, surface = ?, profit_margin = ?::profit_margin_type, total_cost = ?, project_status = ?::project_status_type, client_id = ? WHERE id = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, project.getProjectName());
+            preparedStatement.setDouble(2, project.getSurface());
+            preparedStatement.setString(3, project.getProfitMargin().name());
+            preparedStatement.setDouble(4, project.getTotalCost());
+            preparedStatement.setString(5, project.getStatus().name());
+            preparedStatement.setInt(6, project.getClient().getId());
+            preparedStatement.setLong(7, project.getId());
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Error updating project: " + e.getMessage());
+        }
+        return project;
     }
 
     @Override
-    public boolean delete(Long id) {
+    public boolean delete(Long id)
+    {
+        String query = "DELETE FROM projects WHERE id = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query))
+        {
+            preparedStatement.setLong(1, id);
+            int result = preparedStatement.executeUpdate();
+            return result == 1;
+        } catch (SQLException e)
+        {
+            System.out.println("Error deleting project: " + e.getMessage());
+        }
         return false;
+    }
+
+    private Project mapToProject(ResultSet resultSet) throws SQLException {
+        Long id = resultSet.getLong("id");
+        String projectName = resultSet.getString("project_name");
+        double surface = resultSet.getDouble("surface");
+        ProfitMarginType profitMargin = ProfitMarginType.valueOf(resultSet.getString("profit_margin"));
+        double totalCost = resultSet.getDouble("total_cost");
+        ProjectStatusType projectStatus = ProjectStatusType.valueOf(resultSet.getString("project_status"));
+        Long clientId = resultSet.getLong("client_id"); // Fetching the client ID
+
+
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Client not found for ID: " + clientId));
+
+        return new Project(id, projectName, surface, client);
     }
 }

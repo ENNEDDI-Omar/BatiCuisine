@@ -2,9 +2,11 @@ import startup.config.DatabaseConnection;
 import startup.repository.implementations.ClientRepository;
 import startup.repository.implementations.LaborRepository;
 import startup.repository.implementations.MaterialRepository;
+import startup.repository.implementations.ProjectRepository;
 import startup.service.ClientService;
 import startup.service.LaborService;
 import startup.service.MaterialService;
+import startup.service.ProjectService;
 import startup.ui.ClientMenu;
 import startup.ui.MainMenu;
 
@@ -20,12 +22,14 @@ public class Main {
         ClientRepository clientRepository = new ClientRepository();
         MaterialRepository materialRepository = new MaterialRepository();
         LaborRepository laborRepository = new LaborRepository();
+        ProjectRepository projectRepository = new ProjectRepository(clientRepository);
 
         ClientService clientService = new ClientService(clientRepository);
         MaterialService materialService = new MaterialService(materialRepository);
         LaborService laborService = new LaborService(laborRepository);
+        ProjectService projectService = new ProjectService(projectRepository);
 
-        MainMenu mainMenu = new MainMenu(clientService, materialService, laborService);
+        MainMenu mainMenu = new MainMenu(clientService, materialService, laborService, projectService);
         mainMenu.displayMainMenu();
     }
 }

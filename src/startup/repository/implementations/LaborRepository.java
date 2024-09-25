@@ -120,7 +120,7 @@ public class LaborRepository implements CrudInterface<Labor> {
         Long projectId = resultSet.getLong("project_id");
 
 
-        ProjectRepository projectRepository = new ProjectRepository();
+        ProjectRepository projectRepository = new ProjectRepository(new ClientRepository());
         Project project = projectRepository.findById(projectId).orElse(null);
 
         Labor labor = new Labor(id, ComponentType.LABOR, name, transportCost, type, workHours, productivityLevel, project);
