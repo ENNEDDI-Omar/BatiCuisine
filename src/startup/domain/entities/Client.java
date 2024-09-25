@@ -26,7 +26,7 @@ public class Client {
         projects = new ArrayList<>();
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 

@@ -1,4 +1,8 @@
 package startup.repository.interfaces;
 
-public interface QuotesInterface {
+import startup.domain.entities.Quotes;
+
+public interface QuotesInterface extends CrudInterface<Quotes>
+{
+
 }

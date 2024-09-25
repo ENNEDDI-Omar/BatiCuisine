@@ -5,6 +5,7 @@ import startup.domain.enums.QualityCoefficientType;
 import startup.exceptions.ClientNotFoundException;
 import startup.exceptions.ProjectNotFoundException;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 public class ValidationUtils
@@ -146,6 +147,29 @@ public class ValidationUtils
             throw new IllegalArgumentException("Work hours cannot be negative.");
         }
         return workHours;
+    }
+
+    public static double validateEstimatedAmount(double amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Estimated amount cannot be negative.");
+        }
+        return amount;
+    }
+
+    // Validation pour les dates d'émission pour s'assurer qu'elles ne sont pas postérieures à la date d'expiration
+    public static LocalDate validateIssueDate(LocalDate issueDate, LocalDate expirationDate) {
+        if (issueDate != null && expirationDate != null && issueDate.isAfter(expirationDate)) {
+            throw new IllegalArgumentException("Issue date cannot be after expiration date.");
+        }
+        return issueDate;
+    }
+
+    // Validation pour les dates d'expiration pour s'assurer qu'elles ne sont pas antérieures à la date d'émission
+    public static LocalDate validateExpirationDate(LocalDate expirationDate, LocalDate issueDate) {
+        if (expirationDate != null && issueDate != null && expirationDate.isBefore(issueDate)) {
+            throw new IllegalArgumentException("Expiration date cannot be before issue date.");
+        }
+        return expirationDate;
     }
 
 }
