@@ -11,8 +11,8 @@ import java.util.Optional;
 public class LaborService {
     private final LaborRepository laborRepository;
 
-    public LaborService(LaborRepository laborRepository) {
-        this.laborRepository = laborRepository;
+    public LaborService() {
+        this.laborRepository = new LaborRepository();
     }
 
     // Save a new labor

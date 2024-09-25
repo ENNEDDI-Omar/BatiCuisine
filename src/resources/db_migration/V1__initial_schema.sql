@@ -1,5 +1,5 @@
 -- Drop existing tables and types to prevent conflicts during creation
-DROP TABLE IF EXISTS labor CASCADE;
+DROP TABLE IF EXISTS labors CASCADE;
 DROP TABLE IF EXISTS materials CASCADE;
 DROP TABLE IF EXISTS components CASCADE;
 DROP TABLE IF EXISTS quotes CASCADE;
@@ -17,7 +17,7 @@ DROP TYPE IF EXISTS productivity_level_type CASCADE;
 
 -- Create enums types
 CREATE TYPE profit_margin_type AS ENUM ('individual', 'company');
-CREATE TYPE project_status_type AS ENUM ('created', 'started', 'in progress', 'completed', 'cancelled');
+CREATE TYPE project_status_type AS ENUM ('created', 'started', 'in_progress', 'completed', 'cancelled');
 CREATE TYPE component_type AS ENUM ('material', 'labor');
 CREATE TYPE tax_rate_type AS ENUM ('material_tax_only', 'labor_tax_only', 'tax_combined');
 CREATE TYPE quality_coefficient_type AS ENUM ('standard', 'premium');
@@ -81,7 +81,7 @@ CREATE TABLE materials (
 ) INHERITS (components);
 
 
-CREATE TABLE labor (
+CREATE TABLE labors (
                        type labor_type,
                        work_hours DOUBLE PRECISION NOT NULL CHECK ( work_hours >= 0 ),
                        productivity_level productivity_level_type
@@ -100,10 +100,10 @@ INSERT INTO clients (client_name, address, phone, is_professional) VALUES
 
 -- Insert multiple Projects
 INSERT INTO projects (project_name, profit_margin, total_cost, project_status, client_id, surface) VALUES
-                                                                                                       ('Small Bathroom Project', 'company', 15000, 'in progress', 2, 25),
+                                                                                                       ('Small Bathroom Project', 'company', 15000, 'in_progress', 2, 25),
                                                                                                        ('Large Kitchen Project', 'individual', 75000, 'completed', 3, 45),
                                                                                                        ('Outdoor BBQ Area', 'individual', 30000, 'cancelled', 1, 50),
-                                                                                                       ('Office Renovation', 'company', 45000, 'in progress', 5, 75),
+                                                                                                       ('Office Renovation', 'company', 45000, 'in_progress', 5, 75),
                                                                                                        ('Small Condo Remodel', 'individual', 18000, 'completed', 3, 30);
 
 
@@ -125,7 +125,7 @@ INSERT INTO materials (project_id, name, unit_price, quantity, quality_coefficie
 
 
 -- Insert multiple Labors
-INSERT INTO labor (project_id, name, type, work_hours, productivity_level, tax, transport_cost, cost) VALUES
+INSERT INTO labors (project_id, name, type, work_hours, productivity_level, tax, transport_cost, cost) VALUES
                                                                                                           (2, 'Tiling Team', 'worker', 40, 'normal', 'labor_tax_only', 11, (40 * 20 + 11)),
                                                                                                           (3, 'Marble Installation Team', 'specialist', 50, 'high', 'labor_tax_only', 15, (50 * 30 + 15)),
                                                                                                           (4, 'Bricklaying Team', 'worker', 60, 'normal', 'labor_tax_only', 8, (60 * 20 + 8));
@@ -148,7 +148,7 @@ SELECT p.project_name,
 FROM projects p
          JOIN components c ON p.id = c.project_id
          LEFT JOIN materials m ON c.id = m.id
-         LEFT JOIN labor l ON c.id = l.id
+         LEFT JOIN labors l ON c.id = l.id
 GROUP BY p.project_name, p.profit_margin;
 
 
@@ -166,7 +166,7 @@ SELECT p.project_name, c.name AS component_name, c.tax, c.transport_cost,
 FROM projects p
          LEFT JOIN components c ON p.id = c.project_id
          LEFT JOIN materials m ON c.id = m.id
-         LEFT JOIN labor l ON c.id = l.id
+         LEFT JOIN labors l ON c.id = l.id
 WHERE p.project_name = 'Office Renovation';
 
 

@@ -36,6 +36,7 @@ public class Project
         this.projectStatus = ProjectStatusType.CREATED;
         initializeProfitMargin();
         this.totalCost = calculateTotalCost();
+        setTotalCost(calculateTotalCost());
     }
 
 
@@ -73,6 +74,7 @@ public class Project
     }
 
     public double getTotalCost() {
+        setTotalCost(calculateTotalCost());
         return totalCost;
     }
 
@@ -99,12 +101,13 @@ public class Project
             throw new IllegalArgumentException("Cannot add a null component.");
         }
         components.add(component);
-        calculateTotalCost();
+        setTotalCost(calculateTotalCost());
     }
+
 
     public void removeComponent(Component component) {
         components.remove(component);
-        //updateTotalCost();
+        setTotalCost(calculateTotalCost());
     }
 
     @Override

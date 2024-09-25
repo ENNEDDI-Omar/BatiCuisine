@@ -109,13 +109,13 @@ public class ValidationUtils
         return quantity;
     }
 
-    public static QualityCoefficientType validateQualityCoefficient(String qualityCoefficient) {
-        try {
-            return QualityCoefficientType.valueOf(qualityCoefficient.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid quality coefficient provided.");
-        }
-    }
+//    public static QualityCoefficientType validateQualityCoefficient(String qualityCoefficient) {
+//        try {
+//            return QualityCoefficientType.valueOf(qualityCoefficient.toUpperCase());
+//        } catch (IllegalArgumentException e) {
+//            throw new IllegalArgumentException("Invalid quality coefficient provided.");
+//        }
+//    }
 
 
     // Valide le nom du projet
@@ -156,9 +156,12 @@ public class ValidationUtils
         return amount;
     }
 
-    // Validation pour les dates d'émission pour s'assurer qu'elles ne sont pas postérieures à la date d'expiration
+
     public static LocalDate validateIssueDate(LocalDate issueDate, LocalDate expirationDate) {
-        if (issueDate != null && expirationDate != null && issueDate.isAfter(expirationDate)) {
+        if (issueDate.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Issue date cannot be in the future.");
+        }
+        if (expirationDate != null && issueDate.isAfter(expirationDate)) {
             throw new IllegalArgumentException("Issue date cannot be after expiration date.");
         }
         return issueDate;

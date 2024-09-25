@@ -1,23 +1,23 @@
-package startup.domain.enums;
+  package startup.domain.enums;
 
-public enum ProfitMarginType {
-  INDIVIDUAL(0.22),
-  COMPANY(0.32);
+  public enum ProfitMarginType {
+    INDIVIDUAL(0.22),
+    COMPANY(0.32);
 
-  private final double margin;
+    private final double margin;
 
-  ProfitMarginType(double margin) {
-    this.margin = margin;
+    ProfitMarginType(double margin) {
+      this.margin = margin;
+    }
+
+    public double getMargin() {
+      return margin;
+    }
+
+    @Override
+    public String toString()
+    {
+      return name() + "{ Profit Margin: " + margin + "}";
+    }
   }
-
-  public double getMargin() {
-    return margin;
-  }
-
-  @Override
-  public String toString()
-  {
-    return name() + "{ Profit Margin: " + margin + "}";
-  }
-}
 

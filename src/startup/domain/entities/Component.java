@@ -19,15 +19,13 @@ public abstract class Component
     private List<Labor> labors;
 
 
-    public Component(Long id, ComponentType type, String componentName, double transportCost, Project project) {
-        this();
+    public Component(Long id, ComponentType type, String componentName, RateTaxType taxType, double transportCost, Project project) {
         this.id = id;
         this.componentType = type;
         this.componentName = componentName;
+        this.taxType = taxType;
         this.transportCost = transportCost;
         this.project = project;
-        this.cost = calculateCost();
-
     }
 
     public Component() {
@@ -42,7 +40,7 @@ public abstract class Component
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

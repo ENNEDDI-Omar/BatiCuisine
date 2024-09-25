@@ -1,9 +1,6 @@
 package startup.ui;
 
-import startup.service.ClientService;
-import startup.service.LaborService;
-import startup.service.MaterialService;
-import startup.service.ProjectService;
+import startup.service.*;
 import startup.utils.ValidationUtils;
 
 import java.util.Scanner;
@@ -14,26 +11,29 @@ public class MainMenu {
     private final MaterialService materialService;
     private final LaborService laborService;
     private final ProjectService projectService;
+    private final QuotesService quotesService;
 
 
 
-    public MainMenu(ClientService clientService, MaterialService materialService, LaborService laborService, ProjectService projectService)
+    public MainMenu(Scanner scanner , ClientService clientService, MaterialService materialService, LaborService laborService, ProjectService projectService, QuotesService quotesService)
     {
-        this.scanner = new Scanner(System.in);
+        this.scanner = scanner;
         this.clientService = clientService;
         this.materialService = materialService;
         this.laborService = laborService;
         this.projectService = projectService;
+        this.quotesService = quotesService;
     }
 
 
 
    public void displayMainMenu()
    {
-       ClientMenu clientMenu = new ClientMenu(scanner, clientService);
-       MaterialMenu materialMenu = new MaterialMenu(scanner, materialService);
-       LaborMenu laborMenu = new LaborMenu(scanner, laborService);
-       ProjectMenu projectMenu = new ProjectMenu(scanner, projectService);
+       ClientMenu clientMenu = new ClientMenu(scanner);
+       MaterialMenu materialMenu = new MaterialMenu(scanner);
+       LaborMenu laborMenu = new LaborMenu(scanner);
+       ProjectMenu projectMenu = new ProjectMenu(scanner);
+       QuotesMenu quotesMenu = new QuotesMenu(scanner);
        boolean isRunning = true;
 
      try {
@@ -74,7 +74,7 @@ public class MainMenu {
                      laborMenu.displayLaborMenu();
                      break;
                  case 6:
-                     //quotes;
+                       quotesMenu.displayQuotesMenu();
                      break;
                  case 7:
                      isRunning = false;

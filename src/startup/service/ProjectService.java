@@ -11,8 +11,8 @@ import java.util.Optional;
 public class ProjectService {
     private ProjectRepository projectRepository;
 
-    public ProjectService(ProjectRepository projectRepository) {
-        this.projectRepository = projectRepository;
+    public ProjectService() {
+        this.projectRepository =new ProjectRepository();
     }
 
 

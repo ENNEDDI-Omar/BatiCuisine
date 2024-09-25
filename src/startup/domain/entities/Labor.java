@@ -3,14 +3,15 @@ package startup.domain.entities;
 import startup.domain.enums.ComponentType;
 import startup.domain.enums.LaborType;
 import startup.domain.enums.ProductivityLevelType;
+import startup.domain.enums.RateTaxType;
 
 public class Labor extends Component {
     private LaborType laborType;
     private double workHours;
     private ProductivityLevelType productivityLevel;
 
-    public Labor(Long id, ComponentType componentType, String componentName, double transportCost, LaborType type, double workHours, ProductivityLevelType productivity, Project project) {
-        super(id, componentType, componentName, transportCost, project);
+    public Labor(Long id, String componentName, double transportCost, LaborType type, double workHours, ProductivityLevelType productivity, Project project) {
+        super(id, ComponentType.LABOR, componentName, RateTaxType.LABOR_TAX_ONLY, transportCost, project);
         this.laborType = type;
         this.workHours = workHours;
         this.productivityLevel = productivity;

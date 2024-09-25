@@ -5,7 +5,6 @@ import startup.exceptions.ClientNotFoundException;
 import startup.service.ClientService;
 import startup.utils.ValidationUtils;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -13,11 +12,11 @@ public class ClientMenu {
     private final Scanner scanner;
     private final ClientService clientService;
 
-    public ClientMenu(Scanner scanner, ClientService clientService) {
+    public ClientMenu(Scanner scanner) {
         this.scanner = scanner;
-        this.clientService = clientService;
+        this.clientService = new ClientService();
     }
- //Client Menu
+
     public void displayClientMenu() {
         boolean isRunning = true;
         while (isRunning) {
@@ -43,10 +42,10 @@ public class ClientMenu {
                     addNewClient();
                     break;
                 case 3:
-                    //updateAnExistingClient();
+                    updateAnExistingClient();
                     break;
                 case 4:
-                    //deleteAnExistingClient();
+                    deleteAnExistingClient();
                     break;
                 case 5:
                     isRunning = false;
@@ -58,111 +57,122 @@ public class ClientMenu {
         }
     }
 
-    //Searching by id or by Name for Client Menu
-     public void displaySearchForClientMenu()
-     {
-         boolean isRunning = true;
-         while (isRunning) {
-             System.out.println("\n--- Client Search Menu ---");
-             System.out.println("1. Search by Name");
-             System.out.println("2. Search by Id");
-             System.out.println("3. Return to the Client Menu");
-             System.out.print("Enter your choice: ");
+    public void displaySearchForClientMenu() {
+        boolean isRunning = true;
+        while (isRunning) {
+            System.out.println("\n--- Client Search Menu ---");
+            System.out.println("1. Search by Name");
+            System.out.println("2. Search by Id");
+            System.out.println("3. Return to the Client Menu");
+            System.out.print("Enter your choice: ");
 
-             String input = scanner.nextLine();
-             int choice = ValidationUtils.validateMenusChoices(input);
-             if (choice == -1) {
-                 continue;
-             }
+            String input = scanner.nextLine();
+            int choice = ValidationUtils.validateMenusChoices(input);
+            if (choice == -1) {
+                continue;
+            }
 
-             switch (choice) {
-                 case 1:
-                     searchClientByName();
-                     break;
-                 case 2:
-                     searchClientById();
-                     break;
-                 case 3:
-                     isRunning = false;
-                     System.out.println("Returning to Client Menu...");
-                     break;
-                 default:
-                     System.out.println("Invalid choice. Please enter 1, 2, or 3.");
-             }
-         }
-     }
+            switch (choice) {
+                case 1:
+                    searchClientByName();
+                    break;
+                case 2:
+                    searchClientById();
+                    break;
+                case 3:
+                    isRunning = false;
+                    System.out.println("Returning to Client Menu...");
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please enter 1, 2, or 3.");
+            }
+        }
+    }
 
-    // Méthode pour rechercher un client par ID
-    private void searchClientById() {
+    public Client searchClientById() {
         System.out.print("Enter the client ID to search for: ");
         String idInput = scanner.nextLine();
         try {
             Long clientId = ValidationUtils.validateId(idInput);
-            Client client = clientService.findById(clientId).orElseThrow(() -> new ClientNotFoundException("Client not found with ID: " + clientId));
-            System.out.println("Client found: " + client);
-            if (promptForContinuation()) {
-                createProjectForClient(client);
+            Optional<Client> clientOptional = clientService.findById(clientId);
+            if (clientOptional.isPresent()) {
+                Client client = clientOptional.get();
+                System.out.println("Client found: " + client);
+                return client;
+            } else {
+                System.out.println("No client found with ID: " + clientId);
+                return handleClientNotFound();
             }
-        } catch (IllegalArgumentException | ClientNotFoundException e) {
+        } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
-            handleClientNotFound();
+            return handleClientNotFound();
         }
     }
 
-    // Méthode pour rechercher un client par Nom
-    private void searchClientByName() {
+    public Client searchClientByName() {
         System.out.print("Enter the client name to search for: ");
         String name = scanner.nextLine();
+
         try {
             String validatedName = ValidationUtils.validateName(name);
             Optional<Client> clientOptional = clientService.findByName(validatedName);
+
             if (clientOptional.isPresent()) {
-                System.out.println("Client found: " + clientOptional.get());
-                if (promptForContinuation()) {
-                    createProjectForClient(clientOptional.get());
-                }
+                Client client = clientOptional.get();
+                System.out.println("Client found: " + client);
+                return client;
             } else {
                 System.out.println("No client found with the name: " + validatedName);
-                handleClientNotFound();
+                return handleClientNotFound();
             }
         } catch (ClientNotFoundException e) {
             System.out.println(e.getMessage());
-            handleClientNotFound();
+            return handleClientNotFound();
         }
     }
 
+    private Client handleClientNotFound() {
+        System.out.println("Would you like to retry, create a new client, or cancel? (retry/new/cancel): ");
+        String response = scanner.nextLine().trim().toLowerCase();
+        switch (response) {
+            case "retry":
+                return searchClientByName();
+            case "new":
+                return addNewClient();
+            case "cancel":
+            default:
+                return null;
+        }
+    }
 
+    private Client addNewClient() {
+        try {
+            System.out.println("Enter new client details:");
+            System.out.print("Name: ");
+            String name = scanner.nextLine();
+            System.out.print("Address: ");
+            String address = scanner.nextLine();
+            System.out.print("Phone: ");
+            String phone = scanner.nextLine();
+            boolean isProfessional = getProfessionalStatus();
 
-    //Methode for adding New Client
-      private void addNewClient()
-      {
-          try {
-              System.out.println("Enter new client details:");
-              System.out.print("Name: ");
-              String name = scanner.nextLine();
-              System.out.print("Address: ");
-              String address = scanner.nextLine();
-              System.out.print("Phone: ");
-              String phone = scanner.nextLine();
-              boolean isProfessional = getProfessionalStatus();
+            Client newClient = new Client(null, name, address, phone, isProfessional);
+            ValidationUtils.clientValidation(newClient);
+            if (confirmClientDetails(newClient)) {
+                clientService.save(newClient);
+                System.out.println("New client added successfully.");
+                return newClient;
+            } else {
+                System.out.println("Client addition canceled. Client details aren't correct.");
+                return null;
+            }
+        } catch (Exception e) {
+            System.out.println("Error adding new client: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
 
-              Client newClient = new Client(null, name, address, phone, isProfessional);
-              ValidationUtils.clientValidation(newClient);
-              if (confirmClientDetails(newClient)) {
-                  clientService.save(newClient);
-                  System.out.println("New client added successfully.");
-              } else {
-                  System.out.println("Client addition canceled. Client details aren't Correct");
-              }
-
-              System.out.println("New client added successfully.");
-          } catch (Exception e) {
-              System.out.println("Error adding new client: " + e.getMessage());
-              e.printStackTrace();
-          }
-      }
-
-    //Methode for updating a Client
     private void updateAnExistingClient() {
         System.out.print("Enter the client ID to update: ");
         String idInput = scanner.nextLine();
@@ -173,7 +183,11 @@ public class ClientMenu {
         }
 
         try {
-            Client client = clientService.findById(clientId).orElseThrow(() -> new ClientNotFoundException("Client not found"));
+            Optional<Client> clientOptional = clientService.findById(clientId);
+            if (!clientOptional.isPresent()) {
+                throw new ClientNotFoundException("Client not found");
+            }
+            Client client = clientOptional.get();
 
             System.out.print("New name (leave blank to not change): ");
             String name = scanner.nextLine();
@@ -204,12 +218,11 @@ public class ClientMenu {
         }
     }
 
-    //Methode for deliting a Client
     private void deleteAnExistingClient() {
         System.out.print("Enter the client ID to delete: ");
         String idInput = scanner.nextLine();
         try {
-            Long clientId = ValidationUtils.validateId(idInput);  // Valide l'ID et lance une exception si non valide
+            Long clientId = ValidationUtils.validateId(idInput);
             if (clientService.delete(clientId)) {
                 System.out.println("Client deleted successfully.");
             } else {
@@ -220,9 +233,6 @@ public class ClientMenu {
             e.printStackTrace();
         }
     }
-
-
-///////////////////////////////////////////////Infos Confirmations Methodes://////////////////////////////////////////////
 
     private boolean getProfessionalStatus() {
         while (true) {
@@ -257,28 +267,5 @@ public class ClientMenu {
         System.out.print("Confirm the changes (y/n): ");
         String confirmation = scanner.nextLine().trim().toLowerCase();
         return "y".equals(confirmation);
-    }
-
-//////////////////////////////Asking prompt to search methodes: ///////////////////////////////
-
-    private boolean promptForContinuation() {
-        System.out.print("Do you wish to continue with this client? (y/n): ");
-        String response = scanner.nextLine().trim().toLowerCase();
-        return "y".equals(response);
-    }
-
-    private void createProjectForClient(Client client) {
-        System.out.println("Proceeding to create a project for: " + client.getName());
-
-    }
-
-    private void handleClientNotFound() {
-        System.out.println("Would you like to retry or create a new client? (retry/new): ");
-        String response = scanner.nextLine().trim().toLowerCase();
-        if ("retry".equals(response)) {
-            displayClientMenu();
-        } else if ("new".equals(response)) {
-            addNewClient(); 
-        }
     }
 }

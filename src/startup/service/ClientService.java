@@ -10,8 +10,8 @@ import java.util.Optional;
 public class ClientService {
     private final ClientRepository clientRepository;
 
-    public ClientService(ClientRepository clientRepository) {
-        this.clientRepository = clientRepository;
+    public ClientService() {
+        this.clientRepository =new ClientRepository();
     }
 
     public Client save(Client client) {

@@ -8,10 +8,7 @@ import startup.domain.enums.QualityCoefficientType;
 import startup.domain.enums.RateTaxType;
 import startup.repository.interfaces.CrudInterface;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -25,38 +22,30 @@ public class MaterialRepository implements CrudInterface<Material> {
 
     @Override
     public Material save(Material material) {
-        String query = "INSERT INTO materials (project_id, name, tax, cost, transport_cost, unit_price, quantity, quality_coefficient, component_type) VALUES (?, ?, ?::tax_rate_type, ?, ?, ?, ?, ?::quality_coefficient_type, ?::component_type) RETURNING id";
+        String query = "INSERT INTO materials (project_id, name, tax, cost, transport_cost, unit_price, quantity, quality_coefficient) VALUES (?, ?, ?::tax_rate_type, ?, ?, ?, ?, ?::quality_coefficient_type) RETURNING id";
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setLong(1, material.getProject().getId());
-            preparedStatement.setString(2, material.getComponentName());
-            preparedStatement.setString(3, material.getTaxType().name());
-            preparedStatement.setDouble(4, material.getCost());
-            preparedStatement.setDouble(5, material.getTransportCost());
-            preparedStatement.setDouble(6, material.getUnitPrice());
-            preparedStatement.setDouble(7, material.getQuantity());
-            preparedStatement.setString(8, material.getQualityCoefficient().name());
-            preparedStatement.setString(9, material.getComponentType().name());
-
+            setStatementParameters(preparedStatement, material);
             try (ResultSet generatedKeys = preparedStatement.executeQuery()) {
                 if (generatedKeys.next()) {
-                    Long id = generatedKeys.getLong(1);
-                    material.setId(id);
+                    material.setId(generatedKeys.getLong(1));
                 }
             }
         } catch (SQLException e) {
             System.out.println("Error saving material: " + e.getMessage());
+            e.printStackTrace();
         }
         return material;
     }
 
     @Override
     public Optional<Material> findById(Long id) {
-        String query = "SELECT m.*, c.component_type FROM materials m JOIN components c ON m.id = c.id WHERE m.id = ?";
+        String query = "SELECT * FROM materials WHERE id = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setLong(1, id);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                return Optional.of(mapToMaterial(resultSet));
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(createMaterialFromResultSet(resultSet));
+                }
             }
         } catch (SQLException e) {
             System.out.println("Error finding material by id: " + e.getMessage());
@@ -67,11 +56,11 @@ public class MaterialRepository implements CrudInterface<Material> {
     @Override
     public List<Material> findAll() {
         List<Material> materials = new ArrayList<>();
-        String query = "SELECT m.*, c.component_type FROM materials m JOIN components c ON m.id = c.id";
-        try (PreparedStatement preparedStatement = connection.prepareStatement(query);
-             ResultSet resultSet = preparedStatement.executeQuery()) {
+        String query = "SELECT * FROM materials";
+        try (Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
             while (resultSet.next()) {
-                materials.add(mapToMaterial(resultSet));
+                materials.add(createMaterialFromResultSet(resultSet));
             }
         } catch (SQLException e) {
             System.out.println("Error finding all materials: " + e.getMessage());
@@ -83,13 +72,7 @@ public class MaterialRepository implements CrudInterface<Material> {
     public Material update(Material material) {
         String sql = "UPDATE materials SET name = ?, tax = ?::tax_rate_type, cost = ?, transport_cost = ?, unit_price = ?, quantity = ?, quality_coefficient = ?::quality_coefficient_type WHERE id = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, material.getComponentName());
-            preparedStatement.setString(2, material.getTaxType().name());
-            preparedStatement.setDouble(3, material.getCost());
-            preparedStatement.setDouble(4, material.getTransportCost());
-            preparedStatement.setDouble(5, material.getUnitPrice());
-            preparedStatement.setDouble(6, material.getQuantity());
-            preparedStatement.setString(7, material.getQualityCoefficient().name());
+            setStatementParameters(preparedStatement, material);
             preparedStatement.setLong(8, material.getId());
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
@@ -111,28 +94,33 @@ public class MaterialRepository implements CrudInterface<Material> {
         return false;
     }
 
-    private Material mapToMaterial(ResultSet resultSet) throws SQLException {
-        Long id = resultSet.getLong("id");
+    private void setStatementParameters(PreparedStatement preparedStatement, Material material) throws SQLException {
+        if (material.getProject() != null && material.getProject().getId() != null) {
+            preparedStatement.setLong(1, material.getProject().getId());
+        } else {
+            preparedStatement.setNull(1, Types.BIGINT);
+        }
+        preparedStatement.setString(2, material.getComponentName());
+        preparedStatement.setString(3, RateTaxType.MATERIAL_TAX_ONLY.name().toLowerCase());
+        preparedStatement.setDouble(4, material.getCost());
+        preparedStatement.setDouble(5, material.getTransportCost());
+        preparedStatement.setDouble(6, material.getUnitPrice());
+        preparedStatement.setDouble(7, material.getQuantity());
+        preparedStatement.setString(8, material.getQualityCoefficient().name().toLowerCase());
+    }
+
+    private Material createMaterialFromResultSet(ResultSet resultSet) throws SQLException {
+        Long materialId = resultSet.getLong("id");
         String name = resultSet.getString("name");
         double unitPrice = resultSet.getDouble("unit_price");
         double quantity = resultSet.getDouble("quantity");
-        QualityCoefficientType qualityCoefficient = QualityCoefficientType.valueOf(resultSet.getString("quality_coefficient"));
-        RateTaxType rateTaxType = RateTaxType.valueOf(resultSet.getString("tax"));
+        QualityCoefficientType qualityCoefficient = QualityCoefficientType.valueOf(resultSet.getString("quality_coefficient").toUpperCase());
         double transportCost = resultSet.getDouble("transport_cost");
-        double cost = resultSet.getDouble("cost");
-        ComponentType componentType = ComponentType.valueOf(resultSet.getString("component_type"));
         Long projectId = resultSet.getLong("project_id");
 
-
-        // Autres champs du projet...
-        ProjectRepository projectRepository = new ProjectRepository(new ClientRepository());
+        ProjectRepository projectRepository = new ProjectRepository();
         Project project = projectRepository.findById(projectId).orElse(null);
 
-        // Assumption: project must be fetched or set elsewhere if needed
-        Material material = new Material(id, componentType, name, transportCost, unitPrice, quantity, qualityCoefficient, project);
-        material.setTaxType(rateTaxType);
-        material.setCost(cost);
-        return material;
+        return new Material(materialId, name, transportCost, unitPrice, quantity, qualityCoefficient, project);
     }
-
 }

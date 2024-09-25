@@ -6,8 +6,7 @@ import startup.utils.ValidationUtils;
 
 import java.time.LocalDate;
 
-public class Quotes
-{
+public class Quotes {
     private Long id;
     private double estimatedAmount;
     private QuotesStatusType status;
@@ -15,18 +14,16 @@ public class Quotes
     private LocalDate expirationDate;
     private Project project;
 
-    public Quotes(Long id, LocalDate issueDate, LocalDate expirationDate, Project project)
-    {
+    public Quotes(Long id, Project project) {
         this.id = id;
+        this.project = project;
         this.status = QuotesStatusType.REQUESTED;
-        setIssueDate(issueDate);
-        setExpirationDate(expirationDate);
-        setProject(project);
+        setIssueDate(LocalDate.now());
+        setExpirationDate(this.issueDate.plusDays(10));
         this.estimatedAmount = calculateEstimatedAmount();
-
     }
 
-    public Quotes(){}
+    public Quotes() {}
 
     public double calculateEstimatedAmount() {
         if (project == null) {
@@ -34,7 +31,6 @@ public class Quotes
         }
         return project.getTotalCost() * (1 + project.getProfitMargin().getMargin());
     }
-
 
     public Long getId() {
         return id;
@@ -66,6 +62,7 @@ public class Quotes
 
     public void setIssueDate(LocalDate issueDate) {
         this.issueDate = ValidationUtils.validateIssueDate(issueDate, this.expirationDate);
+        setExpirationDate(this.issueDate.plusDays(10));
     }
 
     public LocalDate getExpirationDate() {
@@ -74,6 +71,7 @@ public class Quotes
 
     public void setExpirationDate(LocalDate expirationDate) {
         this.expirationDate = ValidationUtils.validateExpirationDate(expirationDate, this.issueDate);
+        updateStatusBasedOnExpiration();
     }
 
     public Project getProject() {
@@ -84,6 +82,15 @@ public class Quotes
         this.project = project;
     }
 
+    private void updateStatusBasedOnExpiration()
+    {
+        if (this.expirationDate != null && this.expirationDate.isBefore(LocalDate.now()) && this.status == QuotesStatusType.REQUESTED)
+        {
+            this.status = QuotesStatusType.EXPIRED;
+        }
+    }
+
+
     @Override
     public String toString() {
         return "Quotes{" +
@@ -92,7 +99,7 @@ public class Quotes
                 ", status=" + status +
                 ", issueDate=" + issueDate +
                 ", expirationDate=" + expirationDate +
-                ", project=" + project.getProjectName() +
+                ", project=" + (project != null ? project.getProjectName() : "No project linked") +
                 '}';
     }
 }

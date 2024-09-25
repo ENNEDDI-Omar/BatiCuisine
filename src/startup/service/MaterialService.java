@@ -1,6 +1,7 @@
 package startup.service;
 
 import startup.domain.entities.Material;
+import startup.domain.enums.QualityCoefficientType;
 import startup.exceptions.MaterialNotFoundException;
 import startup.repository.implementations.MaterialRepository;
 import startup.utils.ValidationUtils;
@@ -11,18 +12,18 @@ import java.util.Optional;
 public class MaterialService {
     private MaterialRepository materialRepository;
 
-    public MaterialService(MaterialRepository materialRepository) {
+    public MaterialService() {
         this.materialRepository = new MaterialRepository();
     }
 
     public Material saveMaterial(Material material) {
-        validateMaterial(material);
+
         return materialRepository.save(material);
     }
 
     public Material findMaterialById(Long id) {
-        Optional<Material> material = materialRepository.findById(id);
-        return material.orElseThrow(() -> new MaterialNotFoundException("No material found with id: " + id));
+        return materialRepository.findById(id)
+                .orElseThrow(() -> new MaterialNotFoundException("No material found with id: " + id));
     }
 
     public List<Material> findAllMaterials() {
@@ -47,6 +48,6 @@ public class MaterialService {
     private void validateMaterial(Material material) {
         material.setUnitPrice(ValidationUtils.validateUnitPrice(material.getUnitPrice()));
         material.setQuantity(ValidationUtils.validateQuantity(material.getQuantity()));
-        material.setQualityCoefficient(ValidationUtils.validateQualityCoefficient(material.getQualityCoefficient().name()));
+        // La validation du qualityCoefficient n'est plus nécessaire car nous avons une valeur par défaut
     }
 }

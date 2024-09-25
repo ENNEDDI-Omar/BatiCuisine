@@ -1,6 +1,9 @@
 package startup.ui;
 
 import startup.domain.entities.Labor;
+import startup.domain.entities.Project;
+import startup.domain.enums.LaborType;
+import startup.domain.enums.ProductivityLevelType;
 import startup.service.LaborService;
 import startup.utils.ValidationUtils;
 
@@ -11,11 +14,12 @@ public class LaborMenu {
     private final Scanner scanner;
     private final LaborService laborService;
 
-    public LaborMenu(Scanner scanner, LaborService laborService) {
+    public LaborMenu(Scanner scanner) {
         this.scanner = scanner;
-        this.laborService = laborService;
+        this.laborService = new LaborService();
     }
 
+    // Main menu for labor management
     public void displayLaborMenu() {
         boolean isRunning = true;
         while (isRunning) {
@@ -35,7 +39,7 @@ public class LaborMenu {
 
             switch (choice) {
                 case 1:
-                    addNewLabor();
+                    addNewLabor();  // Calls the overloaded method with no Project argument
                     break;
                 case 2:
                     updateLabor();
@@ -56,23 +60,89 @@ public class LaborMenu {
         }
     }
 
-    private void addNewLabor() {
+    // Overloaded method that doesn't require a Project
+    public Labor addNewLabor() {
+        // Calls the other addNewLabor method with null for the project
+        return addNewLabor(null);
+    }
+
+    // Main method to add new labor, requires a Project
+    public Labor addNewLabor(Project project) {
         try {
             System.out.println("Enter new labor details:");
+
             System.out.print("Component Name: ");
             String componentName = scanner.nextLine();
-            System.out.print("Work Hours: ");
-            double workHours = Double.parseDouble(scanner.nextLine());
-            workHours = ValidationUtils.validateWorkHours(workHours);
 
-            Labor newLabor = new Labor();
-            newLabor.setComponentName(componentName);
-            newLabor.setWorkHours(workHours);
+            // Validate and input Work Hours
+            double workHours = 0;
+            boolean validInput = false;
+            while (!validInput) {
+                System.out.print("Work Hours: ");
+                String workHoursStr = scanner.nextLine();
+                try {
+                    workHours = Double.parseDouble(workHoursStr);
+                    validInput = true;
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid input for Work Hours. Please enter a numeric value.");
+                }
+            }
 
-            laborService.save(newLabor);
-            System.out.println("New labor added successfully.");
+            // Validate and input Labor Type
+            LaborType laborType = null;
+            validInput = false;
+            while (!validInput) {
+                System.out.print("Labor Type (WORKER/SPECIALIST): ");
+                String laborTypeStr = scanner.nextLine().toUpperCase();
+                try {
+                    laborType = LaborType.valueOf(laborTypeStr);
+                    validInput = true;
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Invalid input for Labor Type. Please enter WORKER or SPECIALIST.");
+                }
+            }
+
+            // Validate and input Productivity Level
+            ProductivityLevelType productivityLevel = null;
+            validInput = false;
+            while (!validInput) {
+                System.out.print("Productivity Level (STANDARD/HIGH): ");
+                String productivityLevelStr = scanner.nextLine().toUpperCase();
+                try {
+                    productivityLevel = ProductivityLevelType.valueOf(productivityLevelStr);
+                    validInput = true;
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Invalid input for Productivity Level. Please enter STANDARD or HIGH.");
+                }
+            }
+
+            // Input Transport Cost
+            double transportCost = 0;
+            validInput = false;
+            while (!validInput) {
+                System.out.print("Transport Cost: ");
+                String transportCostStr = scanner.nextLine();
+                try {
+                    transportCost = Double.parseDouble(transportCostStr);
+                    validInput = true;
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid input for Transport Cost. Please enter a numeric value.");
+                }
+            }
+
+            // Create new Labor object
+            Labor newLabor = new Labor(0L, componentName, transportCost, laborType, workHours, productivityLevel, project);
+            System.out.println("Labor to be saved: " + newLabor);
+
+            // Save the labor
+            Labor savedLabor = laborService.save(newLabor);
+            System.out.println("Labor saved: " + savedLabor);
+
+            return savedLabor;
         } catch (Exception e) {
-            System.out.println("Error adding new labor: " + e.getMessage());
+            System.out.println("Failed to add new labor: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
     }
 

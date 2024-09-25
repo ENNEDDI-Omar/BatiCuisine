@@ -1,21 +1,22 @@
 package startup.ui;
 
 import startup.domain.entities.Material;
+import startup.domain.entities.Project;
+import startup.domain.enums.ComponentType;
 import startup.domain.enums.QualityCoefficientType;
 import startup.exceptions.MaterialNotFoundException;
 import startup.service.MaterialService;
 import startup.utils.ValidationUtils;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Scanner;
 
 public class MaterialMenu {
     private MaterialService materialService;
     private Scanner scanner;
 
-    public MaterialMenu(Scanner scanner, MaterialService materialService) {
-        this.materialService = materialService;
+    public MaterialMenu(Scanner scanner) {
+        this.materialService = new MaterialService();
         this.scanner = scanner;
     }
 
@@ -39,7 +40,7 @@ public class MaterialMenu {
 
             switch (choice) {
                 case 1:
-                    addNewMaterial();
+                    addNewMaterial(null);  // Passing null as we're not in a project context
                     break;
                 case 2:
                     viewAllMaterials();
@@ -63,65 +64,71 @@ public class MaterialMenu {
         }
     }
 
-    private void addNewMaterial() {
-        System.out.println("Enter new material details:");
-        System.out.print("Name: ");
-        String name = scanner.nextLine();
+    public Material addNewMaterial(Project project) {
         try {
-            name = ValidationUtils.validateName(name);
-        } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
-            return;
-        }
+            System.out.println("Enter new material details:");
+            System.out.print("Name: ");
+            String name = scanner.nextLine();
+            System.out.print("Unit Price: ");
+            double unitPrice = Double.parseDouble(scanner.nextLine());
+            System.out.print("Quantity: ");
+            double quantity = Double.parseDouble(scanner.nextLine());
 
-        System.out.print("Unit Price: ");
-        String unitPriceStr = scanner.nextLine();
-        double unitPrice;
-        try {
-            unitPrice = Double.parseDouble(unitPriceStr);
-            unitPrice = ValidationUtils.validateUnitPrice(unitPrice); // Valider le prix unitaire
-        } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
-            return;
-        }
+            QualityCoefficientType qualityCoefficient = QualityCoefficientType.STANDARD; // Valeur par défaut
+            boolean validInput = false;
+            while (!validInput) {
+                System.out.print("Quality Coefficient (STANDARD/PREMIUM): ");
+                String qualityStr = scanner.nextLine().toUpperCase();
+                try {
+                    qualityCoefficient = QualityCoefficientType.valueOf(qualityStr);
+                    validInput = true;
+                    System.out.println(qualityCoefficient);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Invalid quality coefficient. Using STANDARD.");
+                    validInput = true; // Utiliser la valeur par défaut et continuer
+                }
+            }
 
-        System.out.print("Quantity: ");
-        String quantityStr = scanner.nextLine();
-        double quantity;
-        try {
-            quantity = Double.parseDouble(quantityStr);
-            quantity = ValidationUtils.validateQuantity(quantity); // Valider la quantité
-        } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
-            return; // Sortie précoce si la validation échoue
-        }
+            System.out.print("Transport Cost: ");
+            double transportCost = Double.parseDouble(scanner.nextLine());
 
-        System.out.print("Quality Coefficient (STANDARD/PREMIUM): ");
-        String qualityStr = scanner.nextLine();
-        QualityCoefficientType qualityCoefficient;
-        try {
-            qualityCoefficient = ValidationUtils.validateQualityCoefficient(qualityStr); // Valider le coefficient de qualité
-        } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
-            return; // Sortie précoce si la validation échoue
-        }
+            Material newMaterial = new Material(0L, name, transportCost, unitPrice, quantity, qualityCoefficient, project);
+            System.out.println("Material to be saved: " + newMaterial);
 
-        // Création de l'objet Material
-        Material newMaterial = new Material();
-        newMaterial.setComponentName(name);
-        newMaterial.setUnitPrice(unitPrice);
-        newMaterial.setQuantity(quantity);
-        newMaterial.setQualityCoefficient(qualityCoefficient);
-
-        // Sauvegarde du matériel via le service
-        try {
-            materialService.saveMaterial(newMaterial);
-            System.out.println("New material added successfully.");
+            // Sauvegarder le matériel
+            Material savedMaterial = materialService.saveMaterial(newMaterial);
+            System.out.println("Material saved: " + savedMaterial);
+            return savedMaterial;
         } catch (Exception e) {
             System.out.println("Failed to add new material: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
     }
 
+
+
+
+    public Material findExistingMaterial() {
+        System.out.print("Enter Material ID: ");
+        String idInput = scanner.nextLine();
+        Long materialId;
+        try {
+            materialId = ValidationUtils.validateId(idInput);
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+
+        try {
+            Material material = materialService.findMaterialById(materialId);
+            System.out.println("Material found: " + material);
+            return material;
+        } catch (MaterialNotFoundException e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
 
     private void viewAllMaterials() {
         System.out.println("\n--- View All Materials ---");
@@ -139,7 +146,7 @@ public class MaterialMenu {
             materialId = ValidationUtils.validateId(idInput);
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
-            return; // Early exit if ID validation fails
+            return;
         }
 
         Material material;
@@ -159,7 +166,7 @@ public class MaterialMenu {
                 material.setComponentName(name);
             } catch (IllegalArgumentException e) {
                 System.out.println(e.getMessage());
-                return; // Early exit if validation fails
+                return;
             }
         }
 
@@ -171,9 +178,9 @@ public class MaterialMenu {
                 double unitPrice = Double.parseDouble(unitPriceStr);
                 unitPrice = ValidationUtils.validateUnitPrice(unitPrice);
                 material.setUnitPrice(unitPrice);
-            } catch ( IllegalArgumentException e) {
+            } catch (IllegalArgumentException e) {
                 System.out.println(e.getMessage());
-                return; // Early exit if validation fails
+                return;
             }
         }
 
@@ -185,26 +192,25 @@ public class MaterialMenu {
                 double quantity = Double.parseDouble(quantityStr);
                 quantity = ValidationUtils.validateQuantity(quantity);
                 material.setQuantity(quantity);
-            } catch ( IllegalArgumentException e) {
+            } catch (IllegalArgumentException e) {
                 System.out.println(e.getMessage());
-                return; // Early exit if validation fails
+                return;
             }
         }
 
         System.out.println("Current quality coefficient: " + material.getQualityCoefficient());
         System.out.print("New quality coefficient (STANDARD/PREMIUM, leave blank to not change): ");
         String qualityStr = scanner.nextLine();
-        if (!qualityStr.isEmpty()) {
-            try {
-                QualityCoefficientType qualityCoefficient = ValidationUtils.validateQualityCoefficient(qualityStr);
-                material.setQualityCoefficient(qualityCoefficient);
-            } catch (IllegalArgumentException e) {
-                System.out.println(e.getMessage());
-                return; // Early exit if validation fails
-            }
-        }
+//        if (!qualityStr.isEmpty()) {
+//            try {
+////                QualityCoefficientType qualityCoefficient = ValidationUtils.validateQualityCoefficient(qualityStr);
+////                material.setQualityCoefficient(qualityCoefficient);
+//            } catch (IllegalArgumentException e) {
+//                System.out.println(e.getMessage());
+//                return;
+//            }
+//        }
 
-        // Update the material via the service
         try {
             materialService.updateMaterial(material);
             System.out.println("Material updated successfully.");
@@ -212,9 +218,6 @@ public class MaterialMenu {
             System.out.println("Failed to update material: " + e.getMessage());
         }
     }
-
-
-
 
     private void deleteMaterial() {
         System.out.println("\n--- Delete Material ---");
